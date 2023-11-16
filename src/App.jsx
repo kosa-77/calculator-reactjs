@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { create, all } from 'mathjs'
+import Keyboard from './components/Keyboard'
 import './App.css'
 
-function App() {
-  const [expression, setExpression] = useState(0)
+const rgxpNum = RegExp(/[0-9]/)
+const rgxpOp = RegExp(/\+|\/|\*|-|Enter|Backspace|,|\./)
 
-  const rgxpNum = RegExp(/[0-9]/)
-  const rgxpOp = RegExp(/\+|\/|\*|-|Enter|Backspace|,|\./)
+const App = (e) => {
+  const [expression, setExpression] = useState(1)
 
   useEffect(() => {
 
@@ -19,6 +20,7 @@ function App() {
 
   const config = {}
   const math = create(all, config)
+
 
   if (expression === '') {
     setExpression(0)
@@ -56,20 +58,22 @@ function App() {
       e = '.'
     }
 
-    // TODO no consecutive operation sign
-    // if (e.match(rgxpOp)) {
-    //   if(expression.length > 0){
-    //     if (expression[expression.length - 1].match(rgxpOp)) {
-          
-    //     }
-    //   }
-    // }
-      
+    // no consecutive operation signs, change operation sign instead of appending another one to the expression
+    if (e.match(rgxpOp) != null) {
+      if (expression.length > 0) {
+        if (expression[expression.length - 1].match(rgxpOp)) {
+          let edit = expression.slice(0, expression.length - 1)
+          setExpression(edit + e)
+          return
+        }
+      }
+    }
+
     if (expression == 0) {
       if (e == '.') {
         handleDecimal(e)
       } else {
-        if(e.match(rgxpOp) != null){
+        if (e.match(rgxpOp) != null) {
           setExpression(expression + e)
         } else {
           setExpression(e)
@@ -85,8 +89,12 @@ function App() {
   }
 
   function handleDecimal(e) {
-    if (JSON.stringify(expression).includes('.')) {
-      return
+    const rgxpOpNoComma = RegExp(/[\+\/\*-]/)
+    if (expression.length > 0) {
+      let arr = expression.split(rgxpOpNoComma)
+      if (JSON.stringify(arr[arr.length - 1]).includes('.')) {
+        return
+      }
     }
     setExpression(expression + e)
   }
@@ -119,37 +127,16 @@ function App() {
       <section>
         <div>
           <form>
-            <output>{expression}</output>
+            <output id='outputDiv'>{expression}</output>
           </form>
-          <div id='buttonRow'></div>
-          <button id='clearBtn' onClick={() => clear()}>C</button>
-          <button id='eraseBtn' onClick={() => eraseLast()}>c</button>
-          <button id='percentageBtn' onClick={() => calculatePercentage()}>%</button>
-          <button id='divideBtn' onClick={e => printSymbol(e.target.innerText)}>/</button>
-          <div id='buttonRow'>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>7</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>8</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>9</button>
-            <button id='multiplicationBtn' onClick={e => printSymbol(e.target.innerText)}>x</button>
-          </div>
-          <div id='buttonRow'>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>4</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>5</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>6</button>
-            <button id='minusBtn' onClick={e => printSymbol(e.target.innerText)}>-</button>
-          </div>
-          <div id='buttonRow'>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>1</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>2</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>3</button>
-            <button id='plusBtn' onClick={e => printSymbol(e.target.innerText)}>+</button>
-          </div>
-          <div id='buttonRow'>
-            <button id='negateBtn' onClick={() => negate()}>-+</button>
-            <button className='digitBtn' onClick={e => printSymbol(e.target.innerText)}>0</button>
-            <button id='decimalPointBtn' onClick={e => printSymbol(e.target.innerText)}>.</button>
-            <button id='resultBtn' onClick={() => calculate()}>=</button>
-          </div>
+          <Keyboard
+          printSymbol={printSymbol}
+          eraseLast={eraseLast}
+          clear={clear}
+          negate={negate}
+          calculatePercentage={calculatePercentage}
+          calculate={calculate}
+          ></Keyboard>
         </div>
       </section>
     </>

@@ -1,3 +1,5 @@
+@import url('https://fonts.cdnfonts.com/css/seven-segment');
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -50,6 +52,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
+button:active {
+  background-color: #101010;
+}
+
 button:hover {
   border-color: #646cff;
 }
@@ -62,23 +69,47 @@ button:focus-visible {
   background-color:#111111;
 }
 
+.digitBtn:active {
+  background-color: #101010;
+}
+
 #resultBtn {
   background-color: #213547;
+}
+
+#resultBtn:active {
+  background-color: #101010;
 }
 
 #decimalPointBtn {
   background-color: #111111;
 }
 
+#decimalPointBtn:active {
+  background-color: #101010;
+}
+
 #negateBtn {
   background-color: #111111;
 }
 
+#negateBtn:active {
+  background-color: #101010;
+}
+
 #outputDiv {
-  display:flex;
+  border-width: 5px;
+  border-color: white;
+  background-color:#213547;
+  border-radius: 5px;
+  margin-bottom: 3%;
+  display: flex;
   flex-direction: column;
-  text-align:calc(90%);
-  
+  /* text-indent: 80%; */
+  text-align: right;
+  padding: 2%;  
+  font-family: 'Seven Segment', sans-serif;
+  font-size: xx-large;
 }
 
 @media (prefers-color-scheme: light) {
