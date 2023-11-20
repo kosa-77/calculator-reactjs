@@ -5,9 +5,10 @@ import './App.css'
 
 const rgxpNum = RegExp(/[0-9]/)
 const rgxpOp = RegExp(/\+|\/|\*|-|Enter|Backspace|,|\./)
+const rgxpOpNoComma = RegExp(/[\+\/\*-]/)
 
 const App = (e) => {
-  const [expression, setExpression] = useState(1)
+  const [expression, setExpression] = useState(0)
 
   useEffect(() => {
 
@@ -20,7 +21,6 @@ const App = (e) => {
 
   const config = {}
   const math = create(all, config)
-
 
   if (expression === '') {
     setExpression(0)
@@ -45,7 +45,12 @@ const App = (e) => {
 
   function printSymbol(e) {
     if (e.key) {
-      e.preventDefault()
+      if(e.key.match(rgxpNum) || e.key.match(rgxpOp)){
+          if(e.key.match('F')){
+            return
+          }
+          e.preventDefault()
+      }
       handleKeyboardInput(e)
       return
     }
@@ -59,9 +64,9 @@ const App = (e) => {
     }
 
     // no consecutive operation signs, change operation sign instead of appending another one to the expression
-    if (e.match(rgxpOp) != null) {
+    if (e.match(rgxpOpNoComma) != null) {
       if (expression.length > 0) {
-        if (expression[expression.length - 1].match(rgxpOp)) {
+        if (expression[expression.length - 1].match(rgxpOpNoComma)) {
           let edit = expression.slice(0, expression.length - 1)
           setExpression(edit + e)
           return
@@ -70,6 +75,11 @@ const App = (e) => {
     }
 
     if (expression == 0) {
+      // 0 == '0.' returns true but different behaviour is needed for each
+      if(expression === '0.') {
+        setExpression(expression + e)
+        return
+      }
       if (e == '.') {
         handleDecimal(e)
       } else {
@@ -89,10 +99,13 @@ const App = (e) => {
   }
 
   function handleDecimal(e) {
-    const rgxpOpNoComma = RegExp(/[\+\/\*-]/)
     if (expression.length > 0) {
       let arr = expression.split(rgxpOpNoComma)
       if (JSON.stringify(arr[arr.length - 1]).includes('.')) {
+        return
+      }
+      if(JSON.stringify(expression).charAt(expression.length).match(rgxpOpNoComma)){
+        setExpression(expression+0+e)
         return
       }
     }
@@ -100,10 +113,15 @@ const App = (e) => {
   }
 
   function eraseLast() {
+    let exp = ''
     if (typeof (expression) == 'number') {
-      setExpression(JSON.stringify(expression))
+      exp = JSON.stringify(expression)
+    } else {
+      exp = expression
     }
-    setExpression(expression.substr(0, expression.length - 1))
+
+    let exp2 = exp.substring(0, exp.length - 1)
+    setExpression(exp2)
   }
 
   function clear() {
@@ -111,15 +129,29 @@ const App = (e) => {
   }
 
   function negate() {
-    setExpression(math.evaluate(`-1 * ${expression}`))
+    let exp = handleEndingOperationSign()
+    setExpression(math.evaluate(`-1 * ${exp}`))
   }
 
   function calculatePercentage() {
-    setExpression(math.evaluate(`${expression} * 0.01`))
+    let exp = handleEndingOperationSign()
+    setExpression(math.evaluate(`${exp} * 0.01`))
   }
 
   function calculate() {
-    setExpression(math.evaluate(expression))
+    let exp = handleEndingOperationSign()
+    setExpression(math.evaluate(exp))
+  }
+
+  function handleEndingOperationSign() {
+    let exp = expression
+    if (typeof (expression) == 'number') {
+      exp = JSON.stringify(expression)
+    }
+    if (expression.charAt(expression.length - 1).match(rgxpNum) == null) {
+      exp = expression.slice(0, expression.length - 1)
+    }
+    return exp
   }
 
   return (
@@ -130,12 +162,12 @@ const App = (e) => {
             <output id='outputDiv'>{expression}</output>
           </form>
           <Keyboard
-          printSymbol={printSymbol}
-          eraseLast={eraseLast}
-          clear={clear}
-          negate={negate}
-          calculatePercentage={calculatePercentage}
-          calculate={calculate}
+            printSymbol={printSymbol}
+            eraseLast={eraseLast}
+            clear={clear}
+            negate={negate}
+            calculatePercentage={calculatePercentage}
+            calculate={calculate}
           ></Keyboard>
         </div>
       </section>
